@@ -11,6 +11,7 @@ import uuid
 from pathlib import Path
 from flask_cors import CORS
 import json
+from google.cloud import firestore
 
 # Load environment variables
 load_dotenv()
@@ -70,7 +71,7 @@ if not API_KEY:
     print("Warning: HUGGINGFACE_API_KEY not found in environment variables")
     raise ValueError("HUGGINGFACE_API_KEY environment variable is not set")
 
-API_URL = "https://api-inference.huggingface.co/hf-inference/models/facebook/bart-large-cnn"
+API_URL = "https://router.huggingface.co/hf-inference/models/facebook/bart-large-cnn"
 headers = {"Authorization": f"Bearer {API_KEY}"}
 print(f"Headers: {headers}")
 
@@ -172,15 +173,57 @@ def logout():
 @app.route('/api/verify-token', methods=['POST'])
 def verify_token():
     try:
-        id_token = request.json['idToken']
-        decoded_token = auth.verify_id_token(id_token)
-        session['user_id'] = decoded_token['uid']
-        session['user_email'] = decoded_token.get('email', '')
-        session['user_name'] = decoded_token.get('name', '')
-        return jsonify({'status': 'success', 'redirect': url_for('index')})
+        # Get the token from the Authorization header
+        auth_header = request.headers.get('Authorization')
+        if not auth_header or not auth_header.startswith('Bearer '):
+            return jsonify({'error': 'No token provided'}), 401
+        
+        token = auth_header.split('Bearer ')[1]
+        
+        # Verify the token with Firebase
+        try:
+            decoded_token = auth.verify_id_token(token)
+            uid = decoded_token['uid']
+            
+            # Get user data from Firestore
+            user_ref = db.collection('users').document(uid)
+            user_doc = user_ref.get()
+            
+            if not user_doc.exists:
+                # Create new user document if it doesn't exist
+                user_ref.set({
+                    'displayName': decoded_token.get('name', ''),
+                    'email': decoded_token.get('email', ''),
+                    'photoURL': decoded_token.get('picture', ''),
+                    'createdAt': firestore.SERVER_TIMESTAMP
+                })
+                user_data = user_ref.get().to_dict()
+            else:
+                user_data = user_doc.to_dict()
+            
+            # Create session
+            session['user'] = {
+                'uid': uid,
+                'displayName': user_data.get('displayName', ''),
+                'email': user_data.get('email', ''),
+                'photoURL': user_data.get('photoURL', '')
+            }
+            
+            return jsonify({
+                'success': True,
+                'user': session['user']
+            })
+            
+        except auth.InvalidIdTokenError:
+            print("Invalid token")
+            return jsonify({'error': 'Invalid token'}), 401
+        except Exception as e:
+            print(f"Token verification error: {str(e)}")
+            return jsonify({'error': 'Token verification failed'}), 401
+            
     except Exception as e:
-        print(f"Token verification error: {str(e)}")
-        return jsonify({'status': 'error', 'message': str(e)}), 401
+        print(f"Error in verify-token: {str(e)}")
+        return jsonify({'error': 'Internal server error'}), 500
 
 @app.route('/Summarize', methods=["GET", "POST"])
 @login_required
