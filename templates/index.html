@@ -777,12 +777,12 @@
         
         // Initialize Firebase
         const firebaseConfig = {
-            apiKey: "AIzaSyBqHUAA54OOSIt2RnjvDy2dgfBHgyADNmY",
-            authDomain: "datasummarizationlogin.firebaseapp.com",
-            projectId: "datasummarizationlogin",
-            storageBucket: "datasummarizationlogin.firebasestorage.app",
-            messagingSenderId: "868563886977",
-            appId: "1:868563886977:web:6313171684effe64173e80"
+            apiKey: "{{ config.FIREBASE_API_KEY }}",
+            authDomain: "{{ config.FIREBASE_AUTH_DOMAIN }}",
+            projectId: "{{ config.FIREBASE_PROJECT_ID }}",
+            storageBucket: "{{ config.FIREBASE_STORAGE_BUCKET }}",
+            messagingSenderId: "{{ config.FIREBASE_MESSAGING_SENDER_ID }}",
+            appId: "{{ config.FIREBASE_APP_ID }}"
         };
         firebase.initializeApp(firebaseConfig);
 

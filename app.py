@@ -10,6 +10,7 @@ import base64
 import uuid
 from pathlib import Path
 from flask_cors import CORS
+import json
 
 # Load environment variables
 load_dotenv()
@@ -20,8 +21,25 @@ app.secret_key = os.environ.get('SECRET_KEY', os.urandom(24))  # Use environment
 # Enable CORS
 CORS(app, resources={r"/*": {"origins": "*"}})
 
+# Add Firebase configuration to app context
+app.config.update(
+    FIREBASE_API_KEY=os.environ.get('FIREBASE_API_KEY'),
+    FIREBASE_AUTH_DOMAIN=os.environ.get('FIREBASE_AUTH_DOMAIN'),
+    FIREBASE_PROJECT_ID=os.environ.get('FIREBASE_PROJECT_ID'),
+    FIREBASE_STORAGE_BUCKET=os.environ.get('FIREBASE_STORAGE_BUCKET'),
+    FIREBASE_MESSAGING_SENDER_ID=os.environ.get('FIREBASE_MESSAGING_SENDER_ID'),
+    FIREBASE_APP_ID=os.environ.get('FIREBASE_APP_ID')
+)
+
 # Initialize Firebase Admin SDK
-cred = credentials.Certificate('serviceAccountKey.json')
+service_account_path = '/etc/secrets/serviceAccountKey.json'
+if os.path.exists(service_account_path):
+    # Use service account from secret file in production
+    cred = credentials.Certificate(service_account_path)
+else:
+    # Fallback to local file for development
+    cred = credentials.Certificate('serviceAccountKey.json')
+
 firebase_admin.initialize_app(cred)
 
 # Create profile photos directory if it doesn't exist
