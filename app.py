@@ -173,16 +173,16 @@ def logout():
 @app.route('/api/verify-token', methods=['POST'])
 def verify_token():
     try:
-        # Get the token from the Authorization header
-        auth_header = request.headers.get('Authorization')
-        if not auth_header or not auth_header.startswith('Bearer '):
+        # Get the token from the request body
+        data = request.get_json()
+        if not data or 'idToken' not in data:
             return jsonify({'error': 'No token provided'}), 401
         
-        token = auth_header.split('Bearer ')[1]
+        id_token = data['idToken']
         
         # Verify the token with Firebase
         try:
-            decoded_token = auth.verify_id_token(token)
+            decoded_token = auth.verify_id_token(id_token)
             uid = decoded_token['uid']
             
             # Get user data from Firestore
@@ -202,16 +202,16 @@ def verify_token():
                 user_data = user_doc.to_dict()
             
             # Create session
-            session['user'] = {
-                'uid': uid,
-                'displayName': user_data.get('displayName', ''),
-                'email': user_data.get('email', ''),
-                'photoURL': user_data.get('photoURL', '')
-            }
+            session['user_id'] = uid
+            session['user_email'] = user_data.get('email', '')
+            session['user_name'] = user_data.get('displayName', '')
             
             return jsonify({
-                'success': True,
-                'user': session['user']
+                'status': 'success',
+                'user_id': uid,
+                'user_email': user_data.get('email', ''),
+                'user_name': user_data.get('displayName', ''),
+                'photoURL': user_data.get('photoURL', '')
             })
             
         except auth.InvalidIdTokenError:

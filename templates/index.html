@@ -782,49 +782,67 @@
             messagingSenderId: "{{ config.FIREBASE_MESSAGING_SENDER_ID }}",
             appId: "{{ config.FIREBASE_APP_ID }}"
         };
-        firebase.initializeApp(firebaseConfig);
 
-        // Sign in the user with their session information
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // Function to get the current user's ID token
+        async function getIdToken() {
+            const user = auth.currentUser;
+            if (!user) {
+                throw new Error('No user logged in');
+            }
+            return await user.getIdToken();
+        }
+
+        // Function to handle sign in with session
         async function signInWithSession() {
             try {
                 const token = await getIdToken();
                 const response = await fetch(`${API_BASE_URL}/api/verify-token`, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
+                        'Content-Type': 'application/json'
                     },
                     credentials: 'include',
                     body: JSON.stringify({ idToken: token })
                 });
-                
+
                 if (!response.ok) {
-                    throw new Error('Failed to verify token');
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to verify token');
                 }
-                
+
                 const data = await response.json();
-                
-                // Sign in with the custom token
-                await firebase.auth().signInWithCustomToken(data.token);
-                
-                console.log('User signed in successfully');
+                if (data.status === 'success') {
+                    // Update UI with user data
+                    const profileName = document.getElementById('profile-name');
+                    const profileImage = document.getElementById('profile-image');
+                    const loginButton = document.getElementById('login-button');
+                    const profileSection = document.getElementById('profile-section');
+
+                    if (profileName) profileName.textContent = data.user_name || 'User';
+                    if (profileImage) profileImage.src = data.photoURL || '/static/default-profile.png';
+                    if (loginButton) loginButton.style.display = 'none';
+                    if (profileSection) profileSection.style.display = 'flex';
+                }
             } catch (error) {
                 console.error('Error signing in:', error);
+                // Show error message to user
+                const errorDiv = document.getElementById('error-message');
+                if (errorDiv) {
+                    errorDiv.textContent = error.message;
+                    errorDiv.style.display = 'block';
+                }
             }
         }
 
-        // Call signInWithSession when the page loads
-        document.addEventListener('DOMContentLoaded', signInWithSession);
+        // Add error message div to the HTML
+        document.body.insertAdjacentHTML('afterbegin', '<div id="error-message" style="display: none; color: red; padding: 10px; margin: 10px;"></div>');
 
-        // Get the current user's ID token
-        async function getIdToken() {
-            const user = firebase.auth().currentUser;
-            if (user) {
-                return await user.getIdToken();
-            }
-            return null;
-        }
-
+        // Update the form submission
         document.getElementById('summarize-form').addEventListener('submit', async function(e) {
             e.preventDefault();
             const text = document.getElementById('data').value;
@@ -834,11 +852,12 @@
             const numBeams = document.getElementById('num_beams').value;
 
             try {
+                const token = await getIdToken();
                 const response = await fetch(`${API_BASE_URL}/api/summarize`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${await getIdToken()}`
+                        'Authorization': `Bearer ${token}`
                     },
                     credentials: 'include',
                     body: JSON.stringify({
@@ -851,14 +870,21 @@
                 });
 
                 if (!response.ok) {
-                    throw new Error('Failed to generate summary');
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to generate summary');
                 }
 
-                const result = await response.text();
-                document.getElementById('result').textContent = result;
+                const result = await response.json();
+                const resultElement = document.getElementById('result');
+                if (resultElement) {
+                    resultElement.textContent = result.summary;
+                }
             } catch (error) {
                 console.error('Error:', error);
-                document.getElementById('result').textContent = 'Error generating summary. Please try again.';
+                const resultElement = document.getElementById('result');
+                if (resultElement) {
+                    resultElement.textContent = 'Error generating summary. Please try again.';
+                }
             }
         });
 
