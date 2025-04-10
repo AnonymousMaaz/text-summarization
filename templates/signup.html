@@ -331,12 +331,12 @@
     <script>
         // Firebase configuration
         const firebaseConfig = {
-            apiKey: "{{ os.environ.get('FIREBASE_API_KEY') }}",
-            authDomain: "{{ os.environ.get('FIREBASE_AUTH_DOMAIN') }}",
-            projectId: "{{ os.environ.get('FIREBASE_PROJECT_ID') }}",
-            storageBucket: "{{ os.environ.get('FIREBASE_STORAGE_BUCKET') }}",
-            messagingSenderId: "{{ os.environ.get('FIREBASE_MESSAGING_SENDER_ID') }}",
-            appId: "{{ os.environ.get('FIREBASE_APP_ID') }}"
+            apiKey: "{{ config.FIREBASE_API_KEY }}",
+            authDomain: "{{ config.FIREBASE_AUTH_DOMAIN }}",
+            projectId: "{{ config.FIREBASE_PROJECT_ID }}",
+            storageBucket: "{{ config.FIREBASE_STORAGE_BUCKET }}",
+            messagingSenderId: "{{ config.FIREBASE_MESSAGING_SENDER_ID }}",
+            appId: "{{ config.FIREBASE_APP_ID }}"
         };
 
         // Initialize Firebase

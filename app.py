@@ -33,14 +33,23 @@ app.config.update(
 
 # Initialize Firebase Admin SDK
 service_account_path = '/etc/secrets/serviceAccountKey.json'
-if os.path.exists(service_account_path):
-    # Use service account from secret file in production
-    cred = credentials.Certificate(service_account_path)
-else:
-    # Fallback to local file for development
-    cred = credentials.Certificate('serviceAccountKey.json')
-
-firebase_admin.initialize_app(cred)
+try:
+    if os.path.exists(service_account_path):
+        # Use service account from secret file in production
+        print(f"Loading service account from {service_account_path}")
+        cred = credentials.Certificate(service_account_path)
+    else:
+        # Fallback to local file for development
+        print("Service account not found in /etc/secrets, falling back to local file")
+        cred = credentials.Certificate('serviceAccountKey.json')
+    
+    # Initialize Firebase with error handling
+    if not firebase_admin._apps:
+        firebase_admin.initialize_app(cred)
+        print("Firebase Admin SDK initialized successfully")
+except Exception as e:
+    print(f"Error initializing Firebase Admin SDK: {str(e)}")
+    raise
 
 # Create profile photos directory if it doesn't exist
 PROFILE_PHOTOS_DIR = os.path.join(app.static_folder, 'profile_photos')
@@ -140,13 +149,13 @@ def index():
 def login():
     if 'user_id' in session:
         return redirect(url_for('index'))
-    return render_template('login.html')
+    return render_template('login.html', config=app.config)
 
 @app.route('/signup')
 def signup():
     if 'user_id' in session:
         return redirect(url_for('index'))
-    return render_template('signup.html')
+    return render_template('signup.html', config=app.config)
 
 @app.route('/logout')
 def logout():
