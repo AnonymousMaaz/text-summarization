@@ -1,0 +1,8 @@
+[build]
+  publish = "templates"
+  command = "echo 'No build step needed'"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200 

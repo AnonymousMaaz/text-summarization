@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - Text Summarization</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #4895ef;
+            --background-color: #f8f9fa;
+            --text-color: #2b2d42;
+            --gradient: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .signup-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 450px;
+            margin: 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .signup-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: var(--gradient);
+        }
+
+        .signup-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .signup-header h1 {
+            color: var(--primary-color);
+            font-size: 2.2rem;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+
+        .signup-header p {
+            color: var(--text-color);
+            opacity: 0.8;
+            font-size: 1.1rem;
+        }
+
+        .form-control {
+            border-radius: 10px;
+            padding: 0.9rem 1.2rem;
+            border: 2px solid #e1e8ed;
+            margin-bottom: 1.2rem;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+        }
+
+        .btn-primary {
+            background: var(--gradient);
+            border: none;
+            border-radius: 10px;
+            padding: 0.9rem 1.2rem;
+            font-weight: 600;
+            width: 100%;
+            margin-bottom: 1.2rem;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.3);
+        }
+
+        .social-signup {
+            margin-top: 2rem;
+            text-align: center;
+        }
+
+        .social-signup p {
+            color: var(--text-color);
+            opacity: 0.8;
+            margin-bottom: 1.2rem;
+            position: relative;
+        }
+
+        .social-signup p::before,
+        .social-signup p::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 30%;
+            height: 1px;
+            background: #e1e8ed;
+        }
+
+        .social-signup p::before {
+            left: 0;
+        }
+
+        .social-signup p::after {
+            right: 0;
+        }
+
+        .social-btn {
+            width: 100%;
+            padding: 0.9rem 1.2rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.8rem;
+            transition: all 0.3s ease;
+        }
+
+        .social-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-google {
+            background-color: #fff;
+            color: #757575;
+            border: 2px solid #e1e8ed;
+        }
+
+        .btn-google:hover {
+            background-color: #f8f9fa;
+            border-color: #d1d5db;
+        }
+
+        .btn-github {
+            background-color: #24292e;
+            color: white;
+        }
+
+        .btn-github:hover {
+            background-color: #1b1f23;
+        }
+
+        .login-link {
+            text-align: center;
+            margin-top: 1.5rem;
+            color: var(--text-color);
+            opacity: 0.8;
+        }
+
+        .login-link a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+
+        .login-link a:hover {
+            color: var(--secondary-color);
+        }
+
+        .error-message {
+            background-color: #fee2e2;
+            color: #dc2626;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1.2rem;
+            display: none;
+            font-size: 0.9rem;
+            border: 1px solid #fecaca;
+        }
+
+        .password-requirements {
+            background-color: #f8fafc;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-top: -0.5rem;
+            margin-bottom: 1.2rem;
+            border: 1px solid #e1e8ed;
+        }
+
+        .password-requirements h6 {
+            color: var(--text-color);
+            font-size: 0.9rem;
+            margin-bottom: 0.8rem;
+            font-weight: 600;
+        }
+
+        .password-requirements ul {
+            list-style: none;
+            padding-left: 0;
+            margin-bottom: 0;
+        }
+
+        .password-requirements li {
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+            color: var(--text-color);
+            opacity: 0.8;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .password-requirements li i {
+            font-size: 0.7rem;
+        }
+
+        .requirement-met {
+            color: #059669;
+        }
+
+        .requirement-not-met {
+            color: #dc2626;
+        }
+
+        .form-floating {
+            position: relative;
+            margin-bottom: 1.2rem;
+        }
+
+        .form-floating input {
+            height: 60px;
+            padding: 1rem 0.75rem;
+        }
+
+        .form-floating label {
+            padding: 1rem 0.75rem;
+        }
+
+        @media (max-width: 576px) {
+            body {
+                padding: 1rem;
+            }
+
+            .signup-container {
+                padding: 2rem;
+            }
+
+            .signup-header h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="signup-container">
+        <div class="signup-header">
+            <h1>Create Account</h1>
+            <p>Sign up to start using Text Summarization</p>
+        </div>
+
+        <div class="error-message" id="error-message"></div>
+
+        <form id="signup-form">
+            <div class="form-floating">
+                <input type="text" class="form-control" id="name" placeholder="Full Name" required>
+                <label for="name">Full Name</label>
+            </div>
+            <div class="form-floating">
+                <input type="email" class="form-control" id="email" placeholder="Email" required>
+                <label for="email">Email address</label>
+            </div>
+            <div class="form-floating">
+                <input type="password" class="form-control" id="password" placeholder="Password" required>
+                <label for="password">Password</label>
+            </div>
+            <div class="password-requirements">
+                <h6>Password Requirements:</h6>
+                <ul>
+                    <li id="length-req"><i class="fas fa-circle"></i> At least 8 characters</li>
+                    <li id="uppercase-req"><i class="fas fa-circle"></i> One uppercase letter</li>
+                    <li id="lowercase-req"><i class="fas fa-circle"></i> One lowercase letter</li>
+                    <li id="number-req"><i class="fas fa-circle"></i> One number</li>
+                    <li id="special-req"><i class="fas fa-circle"></i> One special character</li>
+                </ul>
+            </div>
+            <div class="form-floating">
+                <input type="password" class="form-control" id="confirm-password" placeholder="Confirm Password" required>
+                <label for="confirm-password">Confirm Password</label>
+            </div>
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-user-plus me-2"></i> Sign Up
+            </button>
+        </form>
+
+        <div class="social-signup">
+            <p>Or sign up with</p>
+            <button class="social-btn btn-google" id="google-signup">
+                <i class="fab fa-google"></i> Google
+            </button>
+            <button class="social-btn btn-github" id="github-signup">
+                <i class="fab fa-github"></i> GitHub
+            </button>
+        </div>
+
+        <div class="login-link">
+            Already have an account? <a href="/login">Sign in</a>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBqHUAA54OOSIt2RnjvDy2dgfBHgyADNmY",
+            authDomain: "datasummarizationlogin.firebaseapp.com",
+            projectId: "datasummarizationlogin",
+            storageBucket: "datasummarizationlogin.firebasestorage.app",
+            messagingSenderId: "868563886977",
+            appId: "1:868563886977:web:6313171684effe64173e80"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        // Get elements
+        const signupForm = document.getElementById('signup-form');
+        const googleSignupBtn = document.getElementById('google-signup');
+        const githubSignupBtn = document.getElementById('github-signup');
+        const errorMessage = document.getElementById('error-message');
+        const passwordInput = document.getElementById('password');
+        const confirmPasswordInput = document.getElementById('confirm-password');
+
+        // Password requirement elements
+        const lengthReq = document.getElementById('length-req');
+        const uppercaseReq = document.getElementById('uppercase-req');
+        const lowercaseReq = document.getElementById('lowercase-req');
+        const numberReq = document.getElementById('number-req');
+        const specialReq = document.getElementById('special-req');
+
+        // Show error message
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+        }
+
+        // Hide error message
+        function hideError() {
+            errorMessage.style.display = 'none';
+        }
+
+        // Check password requirements
+        function checkPasswordRequirements(password) {
+            const hasLength = password.length >= 8;
+            const hasUppercase = /[A-Z]/.test(password);
+            const hasLowercase = /[a-z]/.test(password);
+            const hasNumber = /[0-9]/.test(password);
+            const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+            lengthReq.className = hasLength ? 'requirement-met' : 'requirement-not-met';
+            uppercaseReq.className = hasUppercase ? 'requirement-met' : 'requirement-not-met';
+            lowercaseReq.className = hasLowercase ? 'requirement-met' : 'requirement-not-met';
+            numberReq.className = hasNumber ? 'requirement-met' : 'requirement-not-met';
+            specialReq.className = hasSpecial ? 'requirement-met' : 'requirement-not-met';
+
+            return hasLength && hasUppercase && hasLowercase && hasNumber && hasSpecial;
+        }
+
+        // Handle password input
+        passwordInput.addEventListener('input', function() {
+            checkPasswordRequirements(this.value);
+        });
+
+        // Handle form submission
+        signupForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hideError();
+
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const password = passwordInput.value;
+            const confirmPassword = confirmPasswordInput.value;
+
+            if (password !== confirmPassword) {
+                showError('Passwords do not match');
+                return;
+            }
+
+            if (!checkPasswordRequirements(password)) {
+                showError('Please meet all password requirements');
+                return;
+            }
+
+            try {
+                const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, password);
+                await userCredential.user.updateProfile({
+                    displayName: name
+                });
+                const idToken = await userCredential.user.getIdToken();
+                
+                const response = await fetch('/api/verify-token', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ idToken })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.redirect) {
+                        window.location.href = data.redirect;
+                    } else {
+                        window.location.href = '/';
+                    }
+                } else {
+                    const data = await response.json();
+                    showError(data.message || 'Authentication failed');
+                }
+            } catch (error) {
+                showError(error.message);
+            }
+        });
+
+        // Handle Google signup
+        googleSignupBtn.addEventListener('click', async () => {
+            hideError();
+            const provider = new firebase.auth.GoogleAuthProvider();
+            try {
+                const result = await firebase.auth().signInWithPopup(provider);
+                const idToken = await result.user.getIdToken();
+                
+                const response = await fetch('/api/verify-token', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ idToken })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.redirect) {
+                        window.location.href = data.redirect;
+                    } else {
+                        window.location.href = '/';
+                    }
+                } else {
+                    const data = await response.json();
+                    showError(data.message || 'Authentication failed');
+                }
+            } catch (error) {
+                showError(error.message);
+            }
+        });
+
+        // Handle GitHub signup
+        githubSignupBtn.addEventListener('click', async () => {
+            hideError();
+            const provider = new firebase.auth.GithubAuthProvider();
+            try {
+                const result = await firebase.auth().signInWithPopup(provider);
+                const idToken = await result.user.getIdToken();
+                
+                const response = await fetch('/api/verify-token', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ idToken })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.redirect) {
+                        window.location.href = data.redirect;
+                    } else {
+                        window.location.href = '/';
+                    }
+                } else {
+                    const data = await response.json();
+                    showError(data.message || 'Authentication failed');
+                }
+            } catch (error) {
+                showError(error.message);
+            }
+        });
+    </script>
+</body>
+</html> 

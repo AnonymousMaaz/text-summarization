@@ -1,0 +1,1194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Summarization</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #4895ef;
+            --background-color: #f8f9fa;
+            --text-color: #2b2d42;
+            --border-radius: 12px;
+            --box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+            --gradient: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .navbar {
+            background: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 1rem 0;
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            color: var(--primary-color);
+            font-size: 1.5rem;
+        }
+
+        .nav-link {
+            color: var(--text-color);
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .nav-link:hover {
+            color: var(--primary-color);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            position: relative;
+            z-index: 1;
+            transition: transform 0.3s ease;
+        }
+
+        .container:hover {
+            transform: translateY(-5px);
+        }
+
+        h1 {
+            color: var(--secondary-color);
+            margin-bottom: 2rem;
+            text-align: center;
+            font-weight: 700;
+            position: relative;
+            padding-bottom: 1rem;
+        }
+
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 4px;
+            background: var(--gradient);
+            border-radius: 2px;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            font-weight: 600;
+            color: var(--secondary-color);
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        textarea, input, select {
+            border: 2px solid #e1e8ed;
+            border-radius: var(--border-radius);
+            padding: 1rem;
+            transition: all 0.3s ease;
+            width: 100%;
+            background: #fff;
+            font-size: 1rem;
+        }
+
+        textarea:focus, input:focus, select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+            outline: none;
+        }
+
+        textarea {
+            min-height: 200px;
+            resize: vertical;
+        }
+
+        .btn-primary {
+            background: var(--gradient);
+            border: none;
+            padding: 0.8rem 2rem;
+            font-weight: 600;
+            border-radius: var(--border-radius);
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.3);
+        }
+
+        .parameters {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            margin-bottom: 2rem;
+            border: 1px solid #e1e8ed;
+            transition: all 0.3s ease;
+        }
+
+        .parameters:hover {
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .parameters h5 {
+            color: var(--secondary-color);
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+            position: relative;
+            padding-bottom: 0.5rem;
+        }
+
+        .parameters h5::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 50px;
+            height: 3px;
+            background: var(--gradient);
+            border-radius: 1.5px;
+        }
+
+        .result-container {
+            margin-top: 2rem;
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            background: white;
+            border: 1px solid #e1e8ed;
+            box-shadow: var(--box-shadow);
+            transition: all 0.3s ease;
+        }
+
+        .result-container:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .result-title {
+            font-weight: 700;
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .result-title i {
+            color: var(--primary-color);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 2rem 0;
+            padding: 2rem;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+            color: var(--primary-color);
+        }
+
+        .alert {
+            margin-top: 1rem;
+            border-radius: var(--border-radius);
+            padding: 1rem;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .fallback-alert {
+            background: #fff3cd;
+            color: #856404;
+            border: none;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 1rem 0;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: var(--border-radius);
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--text-color);
+            opacity: 0.8;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.5rem 1rem;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .user-avatar-edit {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .user-avatar:hover .user-avatar-edit {
+            opacity: 1;
+        }
+
+        .user-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .user-email {
+            font-size: 0.875rem;
+            color: var(--text-color);
+            opacity: 0.8;
+        }
+
+        .edit-profile-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: transparent;
+            border: none;
+            color: var(--primary-color);
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            transition: color 0.3s ease;
+        }
+
+        .edit-profile-btn:hover {
+            color: var(--secondary-color);
+        }
+
+        .profile-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .profile-modal-content {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 2rem;
+            width: 100%;
+            max-width: 500px;
+            position: relative;
+            animation: modalFadeIn 0.3s ease;
+        }
+
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .profile-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .profile-modal-header h3 {
+            color: var(--secondary-color);
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .profile-modal-close {
+            background: transparent;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-color);
+            opacity: 0.7;
+            cursor: pointer;
+            transition: opacity 0.3s ease;
+        }
+
+        .profile-modal-close:hover {
+            opacity: 1;
+        }
+
+        .profile-photo-upload {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .profile-photo-preview {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: var(--gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .profile-photo-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .profile-photo-upload-btn {
+            background: transparent;
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            padding: 0.5rem 1rem;
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .profile-photo-upload-btn:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .profile-photo-input {
+            display: none;
+        }
+
+        .profile-form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .profile-form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .profile-form-group input {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 2px solid #e1e8ed;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .profile-form-group input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+            outline: none;
+        }
+
+        .profile-modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .profile-cancel-btn {
+            background: transparent;
+            border: 2px solid #e1e8ed;
+            color: var(--text-color);
+            padding: 0.8rem 1.5rem;
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .profile-cancel-btn:hover {
+            background: #f8f9fa;
+            border-color: #d1d5db;
+        }
+
+        .profile-save-btn {
+            background: var(--gradient);
+            border: none;
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .profile-save-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.3);
+        }
+
+        .profile-save-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .profile-error {
+            color: #dc2626;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            display: none;
+        }
+
+        .profile-success {
+            color: #059669;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 1rem;
+                padding: 1rem;
+            }
+
+            .stats {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .stat-item {
+                padding: 0.5rem;
+                border-bottom: 1px solid #e1e8ed;
+            }
+
+            .stat-item:last-child {
+                border-bottom: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-file-alt me-2"></i>Text Summarizer
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/logout">
+                            <i class="fas fa-sign-out-alt me-1"></i>Logout
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="user-info mb-4">
+            <div class="user-avatar" id="user-avatar">
+                {% if user.photo_url %}
+                <img src="{{ user.photo_url }}" alt="Profile Photo">
+                {% else %}
+                {{ user.user_name[0].upper() if user.user_name else 'U' }}
+                {% endif %}
+                <div class="user-avatar-edit" id="edit-photo-btn">
+                    <i class="fas fa-camera"></i>
+                </div>
+            </div>
+            <div class="user-details">
+                <span class="user-name" id="display-name">{{ user.user_name or 'User' }}</span>
+                <span class="user-email">{{ user.user_email }}</span>
+            </div>
+            <button class="edit-profile-btn" id="edit-profile-btn">
+                <i class="fas fa-edit"></i> Edit Profile
+            </button>
+        </div>
+
+        <h1>Text Summarization</h1>
+        
+        <form method="POST" action="/Summarize" id="summarize-form">
+            <div class="form-group">
+                <label for="data">Enter your text to summarize:</label>
+                <textarea class="form-control" id="data" name="data" rows="6" required>{{ original_text if original_text else '' }}</textarea>
+                <div class="mt-2">
+                    <span>Character count: </span>
+                    <span id="char-count">0</span>
+                </div>
+            </div>
+
+            <div class="parameters">
+                <h5>Summarization Parameters</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="min_length">Minimum Length:</label>
+                            <input type="number" class="form-control" id="min_length" name="min_length" value="{{ min_length if min_length else 30 }}" min="10" max="500">
+                            <small class="text-muted" id="min-length-note">Note: The model will try to generate a summary of at least this many words, but may generate shorter summaries if appropriate.</small>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="max_length">Maximum Length:</label>
+                            <input type="number" class="form-control" id="max_length" name="max_length" value="{{ max_length if max_length else 130 }}" min="20" max="1000">
+                            <small class="text-muted">Maximum number of words in the summary.</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="num_beams">Number of Beams:</label>
+                            <input type="number" class="form-control" id="num_beams" name="num_beams" value="{{ num_beams if num_beams else 4 }}" min="1" max="10">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="do_sample">Sampling:</label>
+                            <select class="form-control" id="do_sample" name="do_sample">
+                                <option value="false" {% if not do_sample %}selected{% endif %}>Deterministic</option>
+                                <option value="true" {% if do_sample %}selected{% endif %}>Random</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">
+                <i class="fas fa-magic me-2"></i>Generate Summary
+            </button>
+        </form>
+
+        <div class="loading" id="loading">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-3">Generating your summary...</p>
+        </div>
+
+        {% if result %}
+        <div class="result-container">
+            {% if fallback %}
+            <div class="fallback-alert">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>Using basic summarization as the API is currently unavailable.</span>
+            </div>
+            {% endif %}
+            
+            {% if result.split()|length < min_length %}
+            <div class="alert alert-warning" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <span>The generated summary is shorter than the requested minimum length. The model determined this was the most appropriate length for the content.</span>
+            </div>
+            {% endif %}
+            
+            <div class="result-title">
+                <i class="fas fa-file-alt"></i>
+                Summary
+            </div>
+            <div class="result-content">
+                {{ result }}
+            </div>
+            
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-value">{{ original_text.split()|length }}</div>
+                    <div class="stat-label">Original Length (words)</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{ result.split()|length }}</div>
+                    <div class="stat-label">Summary Length (words)</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{ ((original_text.split()|length - result.split()|length) / original_text.split()|length * 100)|round|int }}%</div>
+                    <div class="stat-label">Reduction</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{ min_length }}</div>
+                    <div class="stat-label">Requested Min Length</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{ max_length }}</div>
+                    <div class="stat-label">Requested Max Length</div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if error %}
+        <div class="alert alert-danger" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            {{ error }}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Profile Edit Modal -->
+    <div class="profile-modal" id="profile-modal">
+        <div class="profile-modal-content">
+            <div class="profile-modal-header">
+                <h3>Edit Profile</h3>
+                <button class="profile-modal-close" id="profile-modal-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="profile-photo-upload">
+                <div class="profile-photo-preview" id="profile-photo-preview">
+                    {% if user.photo_url %}
+                    <img src="{{ user.photo_url }}" alt="Profile Photo" id="profile-photo-img">
+                    {% else %}
+                    <span id="profile-photo-initial">{{ user.user_name[0].upper() if user.user_name else 'U' }}</span>
+                    {% endif %}
+                </div>
+                <label for="profile-photo-input" class="profile-photo-upload-btn">
+                    <i class="fas fa-camera me-2"></i> Change Photo
+                </label>
+                <input type="file" id="profile-photo-input" class="profile-photo-input" accept="image/*">
+            </div>
+            <div class="profile-form-group">
+                <label for="profile-name">Display Name</label>
+                <input type="text" id="profile-name" value="{{ user.user_name or '' }}" placeholder="Enter your name">
+                <div class="profile-error" id="profile-name-error"></div>
+            </div>
+            <div class="profile-success" id="profile-success">
+                <i class="fas fa-check-circle me-2"></i> Profile updated successfully!
+            </div>
+            <div class="profile-modal-footer">
+                <button class="profile-cancel-btn" id="profile-cancel-btn">Cancel</button>
+                <button class="profile-save-btn" id="profile-save-btn">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-storage-compat.js"></script>
+    <script>
+        // API URL configuration
+        const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+            ? '' // Use relative URLs for local development
+            : 'https://your-render-app.onrender.com'; // Replace with your Render URL when deployed
+        
+        // Initialize Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyBqHUAA54OOSIt2RnjvDy2dgfBHgyADNmY",
+            authDomain: "datasummarizationlogin.firebaseapp.com",
+            projectId: "datasummarizationlogin",
+            storageBucket: "datasummarizationlogin.firebasestorage.app",
+            messagingSenderId: "868563886977",
+            appId: "1:868563886977:web:6313171684effe64173e80"
+        };
+        firebase.initializeApp(firebaseConfig);
+
+        // Sign in the user with their session information
+        async function signInWithSession() {
+            try {
+                // Get the user's ID token from the session
+                const response = await fetch(`${API_BASE_URL}/api/get-token`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to get token');
+                }
+                
+                const data = await response.json();
+                
+                // Sign in with the custom token
+                await firebase.auth().signInWithCustomToken(data.token);
+                
+                console.log('User signed in successfully');
+            } catch (error) {
+                console.error('Error signing in:', error);
+            }
+        }
+
+        // Call signInWithSession when the page loads
+        document.addEventListener('DOMContentLoaded', signInWithSession);
+
+        // Get the current user's ID token
+        async function getIdToken() {
+            const user = firebase.auth().currentUser;
+            if (user) {
+                return await user.getIdToken();
+            }
+            return null;
+        }
+
+        document.getElementById('summarize-form').addEventListener('submit', function() {
+            document.getElementById('loading').style.display = 'block';
+        });
+
+        // Function to initialize profile edit functionality
+        function initializeProfileEdit() {
+            console.log('Initializing profile edit functionality');
+            
+            const profileModal = document.getElementById('profile-modal');
+            const editProfileBtn = document.getElementById('edit-profile-btn');
+            const profileModalClose = document.getElementById('profile-modal-close');
+            const profileCancelBtn = document.getElementById('profile-cancel-btn');
+            const profileSaveBtn = document.getElementById('profile-save-btn');
+            const profileNameInput = document.getElementById('profile-name');
+            const profilePhotoInput = document.getElementById('profile-photo-input');
+            const profilePhotoPreview = document.getElementById('profile-photo-preview');
+            const profilePhotoImg = document.getElementById('profile-photo-img');
+            const profilePhotoInitial = document.getElementById('profile-photo-initial');
+            const profileNameError = document.getElementById('profile-name-error');
+            const profileSuccess = document.getElementById('profile-success');
+            const userAvatar = document.getElementById('user-avatar');
+            const displayName = document.getElementById('display-name');
+            const editPhotoBtn = document.getElementById('edit-photo-btn');
+
+            // Open modal
+            if (editProfileBtn) {
+                editProfileBtn.addEventListener('click', function() {
+                    if (profileModal) {
+                        profileModal.style.display = 'flex';
+                    }
+                });
+                console.log('Added click event listener to edit profile button');
+            } else {
+                console.log('Edit profile button not found');
+            }
+
+            // Close modal
+            function closeProfileModal() {
+                if (profileModal) {
+                    profileModal.style.display = 'none';
+                }
+                if (profileNameError) {
+                    profileNameError.style.display = 'none';
+                }
+                if (profileSuccess) {
+                    profileSuccess.style.display = 'none';
+                }
+            }
+
+            if (profileModalClose) {
+                profileModalClose.addEventListener('click', closeProfileModal);
+                console.log('Added click event listener to profile modal close button');
+            } else {
+                console.log('Profile modal close button not found');
+            }
+
+            if (profileCancelBtn) {
+                profileCancelBtn.addEventListener('click', closeProfileModal);
+                console.log('Added click event listener to profile cancel button');
+            } else {
+                console.log('Profile cancel button not found');
+            }
+
+            // Close modal when clicking outside
+            if (profileModal) {
+                profileModal.addEventListener('click', function(e) {
+                    if (e.target === profileModal) {
+                        closeProfileModal();
+                    }
+                });
+                console.log('Added click event listener to profile modal for outside clicks');
+            } else {
+                console.log('Profile modal not found');
+            }
+
+            // Handle photo upload
+            if (profilePhotoInput) {
+                profilePhotoInput.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            if (profilePhotoImg) {
+                                profilePhotoImg.src = e.target.result;
+                            } else if (profilePhotoPreview) {
+                                const img = document.createElement('img');
+                                img.src = e.target.result;
+                                img.id = 'profile-photo-img';
+                                img.alt = 'Profile Photo';
+                                profilePhotoPreview.innerHTML = '';
+                                profilePhotoPreview.appendChild(img);
+                            }
+                            if (profilePhotoInitial) {
+                                profilePhotoInitial.style.display = 'none';
+                            }
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+                console.log('Added change event listener to profile photo input');
+            } else {
+                console.log('Profile photo input not found');
+            }
+
+            // Handle edit photo button
+            if (editPhotoBtn && profilePhotoInput) {
+                editPhotoBtn.addEventListener('click', function() {
+                    profilePhotoInput.click();
+                });
+                console.log('Added click event listener to edit photo button');
+            } else {
+                console.log('Edit photo button or profile photo input not found');
+            }
+
+            // Save profile changes
+            if (profileSaveBtn) {
+                profileSaveBtn.addEventListener('click', async function() {
+                    if (!profileNameInput) {
+                        console.error('Profile name input not found');
+                        return;
+                    }
+                    
+                    const newName = profileNameInput.value.trim();
+                    const file = profilePhotoInput ? profilePhotoInput.files[0] : null;
+                    
+                    // Reset error and success messages
+                    if (profileNameError) {
+                        profileNameError.style.display = 'none';
+                    }
+                    if (profileSuccess) {
+                        profileSuccess.style.display = 'none';
+                    }
+                    
+                    // Validate name
+                    if (!newName) {
+                        if (profileNameError) {
+                            profileNameError.textContent = 'Name cannot be empty';
+                            profileNameError.style.display = 'block';
+                        }
+                        return;
+                    }
+                    
+                    try {
+                        // Get the current user's ID token
+                        const idToken = await getIdToken();
+                        if (!idToken) {
+                            throw new Error('User not authenticated. Please try logging out and logging back in.');
+                        }
+
+                        // Show loading state
+                        profileSaveBtn.disabled = true;
+                        profileSaveBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Saving...';
+
+                        // Send update request to backend
+                        const response = await fetch(`${API_BASE_URL}/api/update-profile`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${idToken}`
+                            },
+                            body: JSON.stringify({
+                                displayName: newName,
+                                photoFile: file ? await fileToBase64(file) : null
+                            })
+                        });
+
+                        const data = await response.json();
+
+                        if (!response.ok) {
+                            throw new Error(data.error || 'Failed to update profile');
+                        }
+
+                        // Update UI
+                        if (displayName) {
+                            displayName.textContent = newName;
+                        }
+                        
+                        // Update avatar if photo was changed
+                        if (data.photoURL && userAvatar) {
+                            const img = document.createElement('img');
+                            img.src = data.photoURL;
+                            img.alt = 'Profile Photo';
+                            userAvatar.innerHTML = '';
+                            userAvatar.appendChild(img);
+                            if (editPhotoBtn) {
+                                userAvatar.appendChild(editPhotoBtn);
+                            }
+                        }
+                        
+                        // Show success message
+                        if (profileSuccess) {
+                            profileSuccess.style.display = 'block';
+                        }
+                        
+                        // Close modal after a delay
+                        setTimeout(closeProfileModal, 1500);
+                        
+                    } catch (error) {
+                        console.error('Error updating profile:', error);
+                        if (profileNameError) {
+                            profileNameError.textContent = error.message;
+                            profileNameError.style.display = 'block';
+                        }
+                    } finally {
+                        // Reset button state
+                        profileSaveBtn.disabled = false;
+                        profileSaveBtn.innerHTML = 'Save Changes';
+                    }
+                });
+                console.log('Added click event listener to profile save button');
+            } else {
+                console.log('Profile save button not found');
+            }
+        }
+
+        // Call initializeEventListeners when the page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM content loaded');
+            initializeEventListeners();
+        });
+
+        // Update character count display
+        function updateCharCount() {
+            const textarea = document.getElementById('data');
+            const charCount = document.getElementById('char-count');
+            const minLengthDisplay = document.getElementById('min_length_display');
+            const maxLengthDisplay = document.getElementById('max_length_display');
+            const minLengthInput = document.getElementById('min_length');
+            const maxLengthInput = document.getElementById('max_length');
+            
+            if (!textarea || !charCount) {
+                console.log('Textarea or character count element not found');
+                return;
+            }
+            
+            const text = textarea.value;
+            const count = text.length;
+            const wordCount = text.trim().split(/\s+/).filter(word => word.length > 0).length;
+            charCount.textContent = `${count} characters (${wordCount} words)`;
+            
+            // Update min/max length inputs based on text length
+            const minLength = Math.min(30, Math.floor(wordCount * 0.3));
+            const maxLength = Math.min(130, Math.floor(wordCount * 0.7));
+            
+            if (minLengthInput) {
+                minLengthInput.value = minLength;
+            }
+            
+            if (maxLengthInput) {
+                maxLengthInput.value = maxLength;
+            }
+            
+            // Update the display if elements exist
+            if (minLengthDisplay) {
+                minLengthDisplay.textContent = minLength;
+            }
+            
+            if (maxLengthDisplay) {
+                maxLengthDisplay.textContent = maxLength;
+            }
+        }
+
+        // Function to initialize event listeners
+        function initializeEventListeners() {
+            console.log('Initializing event listeners');
+            
+            // Re-add event listeners to form elements
+            const textarea = document.getElementById('data');
+            if (textarea) {
+                textarea.addEventListener('input', updateCharCount);
+                console.log('Added input event listener to textarea');
+            } else {
+                console.log('Textarea not found');
+            }
+            
+            const minLengthInput = document.getElementById('min_length');
+            if (minLengthInput) {
+                minLengthInput.addEventListener('change', function() {
+                    const minLength = parseInt(this.value);
+                    const maxLength = parseInt(document.getElementById('max_length').value);
+                    if (minLength > maxLength) {
+                        document.getElementById('max_length').value = minLength;
+                        const maxLengthDisplay = document.getElementById('max_length_display');
+                        if (maxLengthDisplay) {
+                            maxLengthDisplay.textContent = minLength;
+                        }
+                    }
+                    
+                    // Add a note about min_length being a suggestion
+                    const noteElement = document.getElementById('min-length-note');
+                    if (noteElement) {
+                        noteElement.textContent = `Note: The model will try to generate a summary of at least ${minLength} words, but may generate shorter summaries if appropriate.`;
+                    }
+                });
+                console.log('Added change event listener to min_length input');
+            } else {
+                console.log('min_length input not found');
+            }
+            
+            const maxLengthInput = document.getElementById('max_length');
+            if (maxLengthInput) {
+                maxLengthInput.addEventListener('change', function() {
+                    const maxLength = parseInt(this.value);
+                    const minLength = parseInt(document.getElementById('min_length').value);
+                    if (maxLength < minLength) {
+                        document.getElementById('min_length').value = maxLength;
+                        const minLengthDisplay = document.getElementById('min_length_display');
+                        if (minLengthDisplay) {
+                            minLengthDisplay.textContent = maxLength;
+                        }
+                    }
+                });
+                console.log('Added change event listener to max_length input');
+            } else {
+                console.log('max_length input not found');
+            }
+            
+            // Re-add event listener to form submission
+            const summarizeForm = document.getElementById('summarize-form');
+            if (summarizeForm) {
+                summarizeForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    // Get form data
+                    const formData = new FormData(this);
+                    
+                    // Show loading indicator
+                    const loading = document.getElementById('loading');
+                    if (loading) {
+                        loading.style.display = 'block';
+                    }
+                    
+                    // Submit form
+                    fetch(`${API_BASE_URL}/Summarize`, {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.text())
+                    .then(html => {
+                        // Replace the current page content with the new HTML
+                        document.documentElement.innerHTML = html;
+                        
+                        // Re-initialize event listeners
+                        initializeEventListeners();
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        const loading = document.getElementById('loading');
+                        if (loading) {
+                            loading.style.display = 'none';
+                        }
+                        alert('An error occurred while generating the summary. Please try again.');
+                    });
+                });
+                console.log('Added submit event listener to summarize form');
+            } else {
+                console.log('summarize form not found');
+            }
+            
+            // Re-initialize profile edit functionality
+            initializeProfileEdit();
+            
+            // Initialize character count
+            updateCharCount();
+        }
+    </script>
+</body>
+</html>
