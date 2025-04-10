@@ -770,11 +770,9 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-storage-compat.js"></script>
     <script>
-        // API URL configuration
-        const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-            ? '' // Use relative URLs for local development
-            : 'https://your-render-app.onrender.com'; // Replace with your Render URL when deployed
-        
+        // Add this at the beginning of your script
+        const API_BASE_URL = window.location.origin;  // This will automatically use the correct domain
+
         // Initialize Firebase
         const firebaseConfig = {
             apiKey: "{{ config.FIREBASE_API_KEY }}",
@@ -789,16 +787,19 @@
         // Sign in the user with their session information
         async function signInWithSession() {
             try {
-                // Get the user's ID token from the session
-                const response = await fetch(`${API_BASE_URL}/api/get-token`, {
-                    method: 'GET',
+                const token = await getIdToken();
+                const response = await fetch(`${API_BASE_URL}/api/verify-token`, {
+                    method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
-                    }
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ idToken: token })
                 });
                 
                 if (!response.ok) {
-                    throw new Error('Failed to get token');
+                    throw new Error('Failed to verify token');
                 }
                 
                 const data = await response.json();
@@ -824,8 +825,41 @@
             return null;
         }
 
-        document.getElementById('summarize-form').addEventListener('submit', function() {
-            document.getElementById('loading').style.display = 'block';
+        document.getElementById('summarize-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const text = document.getElementById('data').value;
+            const minLength = document.getElementById('min_length').value;
+            const maxLength = document.getElementById('max_length').value;
+            const doSample = document.getElementById('do_sample').value === 'true';
+            const numBeams = document.getElementById('num_beams').value;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/summarize`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${await getIdToken()}`
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        text: text,
+                        min_length: minLength,
+                        max_length: maxLength,
+                        do_sample: doSample,
+                        num_beams: numBeams
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to generate summary');
+                }
+
+                const result = await response.text();
+                document.getElementById('result').textContent = result;
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('result').textContent = 'Error generating summary. Please try again.';
+            }
         });
 
         // Function to initialize profile edit functionality

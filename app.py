@@ -19,7 +19,14 @@ app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', os.urandom(24))  # Use environment variable for secret key
 
 # Enable CORS
-CORS(app, resources={r"/*": {"origins": "*"}})
+CORS(app, resources={
+    r"/*": {
+        "origins": ["https://text-summarization-uhm0.onrender.com", "http://localhost:5000"],
+        "methods": ["GET", "POST", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"],
+        "supports_credentials": True
+    }
+})
 
 # Add Firebase configuration to app context
 app.config.update(
@@ -286,6 +293,8 @@ def summarize():
         print(f"Received POST request to /api/summarize")
         print(f"Input text (first 50 chars): {text[:50]}...")
         print(f"Parameters: min_length={min_length}, max_length={max_length}, num_beams={num_beams}, do_sample={do_sample}")
+        print(f"API Key present: {'Yes' if API_KEY else 'No'}")
+        print(f"API Key length: {len(API_KEY) if API_KEY else 0}")
 
         # Try to use the API with retries
         max_retries = 3
@@ -307,8 +316,14 @@ def summarize():
 
                 # Make the API request
                 print(f"Attempt {retry_count + 1}: Sending request to Hugging Face API")
+                print(f"Request URL: {API_URL}")
+                print(f"Request Headers: {headers}")
+                print(f"Request Payload: {payload}")
+                
                 response = requests.post(API_URL, headers=headers, json=payload, timeout=30)
                 print(f"API Response Status: {response.status_code}")
+                print(f"API Response Headers: {dict(response.headers)}")
+                print(f"API Response Body: {response.text[:500]}...")  # Print first 500 chars of response
 
                 if response.status_code == 200:
                     result = response.json()
@@ -327,6 +342,8 @@ def summarize():
                         time.sleep(2)
             except Exception as e:
                 print(f"Exception during API call: {str(e)}")
+                print(f"Exception type: {type(e).__name__}")
+                print(f"Exception args: {e.args}")
                 retry_count += 1
                 if retry_count < max_retries:
                     print(f"Retrying in 2 seconds...")
