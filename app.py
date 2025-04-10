@@ -70,7 +70,7 @@ if not API_KEY:
     print("Warning: HUGGINGFACE_API_KEY not found in environment variables")
     raise ValueError("HUGGINGFACE_API_KEY environment variable is not set")
 
-API_URL = "https://api-inference.huggingface.co/models/facebook/bart-large-cnn"
+API_URL = "https://api-inference.huggingface.co/hf-inference/models/facebook/bart-large-cnn"
 headers = {"Authorization": f"Bearer {API_KEY}"}
 print(f"Headers: {headers}")
 
